@@ -7,6 +7,8 @@ import rospy
 from std_msgs.msg import String, Float32
 from tb_framework.msg import tb_message
 
+import tbpwm 
+
 #%%  
 ser = serial.Serial('/dev/ttyUSB0', 9600)
 
@@ -35,9 +37,9 @@ def arduino_publisher():
         now =  rospy.get_time() - statring_time_offset
         msg.header.stamp = rospy.Time.from_sec(now)
         
-        # pwm_value = PWM.manual
+        # pwm_value = pwmgen()
         
-        # ser.write("pwm_value")
+        # ser.write("L",pwmgen,'-',pwmgen,'\n')
         ser.write("L10-10R\n")
         loop_delay_start = time.time()
         while True:
@@ -68,3 +70,11 @@ if __name__ == '__main__':
         rospy.signal_shutdown()
  
 # %% 
+
+print("L",pwmgen.lpwm,'-',pwmgen.rpwm,'\n')
+# %%
+pwm = tbpwm.ManualPwm()
+ 
+
+
+# %%
