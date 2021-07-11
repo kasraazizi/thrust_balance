@@ -1,13 +1,11 @@
-#%%
-
 #!/usr/bin/env python 
+#%%
 import time 
 import serial 
 import rospy
 from std_msgs.msg import String, Float32
 from tb_framework.msg import tb_feedback, tb_pwm
 
-import tbpwm 
 
 #%%  
 ser = serial.Serial('/dev/ttyUSB0', 9600)
@@ -72,10 +70,6 @@ if __name__ == '__main__':
         rospy.signal_shutdown()
  
 # %% 
- 
-m = "-0.02L1-2R\n"
-k = m.split('L')
-print(m.split('L')[1].split('-')[0])
-print(m.split('L')[1].split('-')[1].split('R')[0])
+  
 
 # %%
