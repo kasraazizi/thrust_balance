@@ -15,8 +15,8 @@ add_message_files(
     FILES
 #   Message1.msg
 #   Message2.msg
-tb_message.msg
-
+tb_feedback.msg
+tb_pwm.msg
 )
 
  
