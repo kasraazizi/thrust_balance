@@ -5,7 +5,7 @@ import time
 import serial 
 import rospy
 from std_msgs.msg import String, Float32
-from tb_framework.msg import tb_message
+from tb_framework.msg import tb_feedback, tb_pwm
 
 import tbpwm 
 
@@ -25,8 +25,8 @@ print(ser.read_all())
  
 #%% 
 rospy.init_node('thrustbalance_feedback') 
-arduinoPublisher = rospy.Publisher('/tb/feedback', tb_message, queue_size=10)        
-msg = tb_message()
+arduinoPublisher = rospy.Publisher('/tb/feedback', tb_feedback, queue_size=10)        
+fb_msg = tb_feedback()
 
 
 def arduino_publisher():      
@@ -35,7 +35,7 @@ def arduino_publisher():
     statring_time_offset = time.time()  
     while not rospy.is_shutdown():
         now =  rospy.get_time() - statring_time_offset
-        msg.header.stamp = rospy.Time.from_sec(now)
+        fb_msg.header.stamp = rospy.Time.from_sec(now)
         
         # pwm_value = pwmgen()
         
@@ -48,12 +48,12 @@ def arduino_publisher():
                 frequency = 1/(time.time()-loop_delay_start)                
                 break         
         
-        msg.frequency  = frequency         
-        msg.roll = float(sensor_data.split("L")[0])
-        msg.leftpwm = int(sensor_data[-7 : -5])
-        msg.rightpwm = int(sensor_data[-4 : -2])
-        arduinoPublisher.publish(msg)
-        print(msg)
+        fb_msg.frequency  = frequency         
+        fb_msg.roll = float(sensor_data.split("L")[0])
+        fb_msg.leftpwm = int(sensor_data[-7 : -5])
+        fb_msg.rightpwm = int(sensor_data[-4 : -2])
+        arduinoPublisher.publish(fb_msg)
+        print(fb_msg)
  
 
 def main():
@@ -73,8 +73,7 @@ if __name__ == '__main__':
 
 print("L",pwmgen.lpwm,'-',pwmgen.rpwm,'\n')
 # %%
-pwm = tbpwm.ManualPwm()
- 
+pwm = tb_pwm()
 
 
 # %%
