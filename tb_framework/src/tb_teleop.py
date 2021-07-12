@@ -12,7 +12,7 @@ pwm_message = tb_pwm()
 rate = rospy.Rate(10)
 #%% pwm controller 
 
-def inpwm():
+def manualpwm():
     old_attr = termios.tcgetattr(sys.stdin)
     tty.setcbreak(sys.stdin.fileno())
     lpwm = 0
@@ -30,10 +30,10 @@ def inpwm():
 
             if key == 'a':
                 lpwm = lpwm + 1
-                rpwm = rpwm - 1
+               
 
             if key == 'd':
-                lpwm = lpwm - 1
+              
                 rpwm = rpwm + 1
             
             if key == 'q':
@@ -49,4 +49,7 @@ def inpwm():
         rate.sleep()
     termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_attr)
 
-inpwm()
+manualpwm()
+pwm_message.leftpwm = 0
+pwm_message.rightpwm = 0
+pwmpublisher.publish(pwm_message)
