@@ -101,13 +101,13 @@ void motor_command_to_esc(short unsigned int leftpwm, short unsigned int rightpw
   if (leftpwm == 0) {  ESC1.write(0); }
   else
   {
-    ESC1.write(map(leftpwm,  0, 99, 1, 180) );             // pwm map to esc frame
+    ESC1.write(map(leftpwm,  0, 99, 10, 100) );             // pwm map to esc frame
   }
   
  if (rightpwm == 0) {  ESC2.write(0); }
   else
   {
-     ESC2.write(map(rightpwm,  0, 99, 1, 180) );              // pwm map to esc frame
+     ESC2.write(map(rightpwm,  0, 99, 10, 100) );              // pwm map to esc frame
   }
 
 
