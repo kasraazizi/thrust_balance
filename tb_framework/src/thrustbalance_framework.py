@@ -14,11 +14,10 @@ ser.flushOutput()
 print("wait")
 while True :
     time.sleep(1)
-    sensor_data = ser.read_all() 
+    sensor_data = ser.read_all()
     print(sensor_data)
     if sensor_data.rfind('OK') != -1:
         break
-
 
 print(ser.read_all())
  
@@ -44,6 +43,7 @@ def arduino_framework(cmd_vel_msg):
             break      
         elif sensor_data.startswith('w') :
             print("wrong input data")
+            frequency = -1
             break        
     
     fb_msg.frequency  = frequency         
