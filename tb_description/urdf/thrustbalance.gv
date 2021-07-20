@@ -1,0 +1,8 @@
+digraph G {
+node [shape=box];
+"stand" [label="stand"];
+"pipe" [label="pipe"];
+node [shape=ellipse, color=blue, fontcolor=blue];
+"stand" -> "roll" [label="xyz: 0 0 0.2 \nrpy: 0 -0 0"]
+"roll" -> "pipe"
+}
