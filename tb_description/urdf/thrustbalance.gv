@@ -1,8 +1,23 @@
 digraph G {
 node [shape=box];
+"base_footprint" [label="base_footprint"];
 "stand" [label="stand"];
 "pipe" [label="pipe"];
+"left_motor" [label="left_motor"];
+"left_propeller" [label="left_propeller"];
+"right_motor" [label="right_motor"];
+"right_propeller" [label="right_propeller"];
 node [shape=ellipse, color=blue, fontcolor=blue];
-"stand" -> "roll" [label="xyz: 0 0 0.2 \nrpy: 0 -0 0"]
+"base_footprint" -> "basefootprint_to_stand" [label="xyz: 0 0 0.1 \nrpy: 0 -0 0"]
+"basefootprint_to_stand" -> "stand"
+"stand" -> "roll" [label="xyz: 0 0 0.1 \nrpy: 0 -1.5708 0"]
 "roll" -> "pipe"
+"pipe" -> "pipe_to_left_motor" [label="xyz: 0 0 -0.3 \nrpy: 0 1.5708 -0"]
+"pipe_to_left_motor" -> "left_motor"
+"left_motor" -> "left_motor_to_propeller" [label="xyz: 0 0 0.01 \nrpy: 0 -0 0"]
+"left_motor_to_propeller" -> "left_propeller"
+"pipe" -> "pipe_to_right_motor" [label="xyz: 0 0 0.3 \nrpy: 0 1.5708 -0"]
+"pipe_to_right_motor" -> "right_motor"
+"right_motor" -> "right_motor_to_propeller" [label="xyz: 0 0 0.01 \nrpy: 0 -0 0"]
+"right_motor_to_propeller" -> "right_propeller"
 }
