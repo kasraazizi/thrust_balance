@@ -22,16 +22,21 @@ import time
 import serial 
 import rospy
 from std_msgs.msg import String, Float32
+from sensor_msgs.msg import JointState 
+from sensor_msgs.msg import JointState 
 from tb_framework.msg import tb_feedback, tb_pwm
 from functools import partial 
-    
+
 # ros initialization
 rospy.init_node('thrustbalance_framework', log_level=rospy.INFO )
 arduinoPublisher = rospy.Publisher('/tb/feedback', tb_feedback, queue_size=10)        
+joint_state_publisher = rospy.Publisher('tb/joint_states', JointState, queue_size=10)
+
 fb_msg = tb_feedback()
+joint_msg = JointState()
 
 def serial_start():
-    time.sleep(0.1)
+    time.sleep(1)
     # serial initialization
     serial_ = serial.Serial('/dev/ttyUSB0', 9600)    
     serial_.flushInput()
@@ -40,7 +45,7 @@ def serial_start():
 
 def arduino_start(serial_obj):
     # waiting for arduino initialization. loop breaks after recives "OK"
-    rospy.loginfo('wait for arduino initialization')
+    rospy.loginfo('wait for arduino to initialize')
     serial_respond_time_offset = time.time()
     restart_try = 0 
     while True :       
@@ -60,18 +65,25 @@ def arduino_start(serial_obj):
                 break
             rospy.loginfo(sensor_data)
 
-        if (time.time()-serial_respond_time_offset) > 5:
+        if (time.time()-serial_respond_time_offset) > 6:
             restart_try += 1 
             serial_respond_time_offset = 0
-            serial_obj.__exit__()
+            serial_obj.flushInput()
+            serial_obj.flushOutput()
+            time.sleep(1) 
+            serial_obj.close()                               
             rospy.logerr("serial not responding --> restarting serial")        
-            rospy.logerr("restart try=" + str(restart_try))        
-            time.sleep(1)
+            rospy.logerr("restart try=" + str(restart_try))                                  
+            serial_start()
+
             serial_obj = serial_start()
-            if restart_try == 4:
+            if restart_try == 3:
                 rospy.logerr("couldn't recive propper data from arduino")
                 rospy.signal_shutdown("couldn't recive propper data from arduino")
-                serial_obj.__exit__()
+                serial_obj.flushInput()
+                serial_obj.flushOutput()
+                time.sleep(1)
+                serial_obj.close()
                 exit(1) 
 
 ser = serial_start()    
@@ -113,15 +125,22 @@ def arduino_framework_cb(cmd_vel_msg):
             break
      
              
-    # allocating data to tb_feedback message for publish
+    # allocating data to fb_msg for publish
     fb_msg.header.stamp = rospy.Time.from_sec(now)
     fb_msg.frequency  = frequency         
     fb_msg.roll = float(sensor_data.split('L')[0])
     fb_msg.leftpwm = int(sensor_data.split('L')[1].split('-')[0])
     fb_msg.rightpwm = int(sensor_data.split('L')[1].split('-')[1].split('R')[0])
     arduinoPublisher.publish(fb_msg)
-    # rospy.loginfo("system is running")
 
+    # allocating data to joint_msg for publish  
+    joint_msg.header.stamp =  rospy.Time.from_sec(rospy.get_time())
+    joint_msg.position = [3.14 * float(sensor_data.split('L')[0]) / 180 , 0, 0]
+    joint_msg.name =  ["roll", "right_motor_to_propeller", "left_motor_to_propeller"]
+    joint_msg.effort = []
+    joint_msg.velocity = []
+    joint_msg.header.frame_id = ''
+    joint_state_publisher.publish(joint_msg)        
          
 if __name__ == '__main__':
     try:         
@@ -135,3 +154,4 @@ if __name__ == '__main__':
         rospy.signal_shutdown()        
         ser.close()
         exit(0)
+ 
