@@ -1,0 +1,21 @@
+# config files for joint state publisher
+# linking ros topics to robot joints
+thrust_balance:
+  # Publish all joint states -----------------------------------
+  joint_state_controller:
+    type: joint_state_controller/JointStateController
+    publish_rate: 50  
+  
+  # Position Controllers ---------------------------------------
+  roll_position_controller:
+    type: effort_controllers/JointPositionController
+    joint: roll
+    # pid: {p: 100.0, i: 0.01, d: 10.0}
+  left_propeller_speed_controller:
+    type: effort_controllers/JointVelocityController
+    joint: left_motor_to_propeller
+    # pid: {p: 100.0, i: 0.01, d: 10.0}
+  right_propeller_speed_controller:
+    type: effort_controllers/JointVelocityController
+    joint: right_motor_to_propeller
+    # pid: {p: 100.0, i: 0.01, d: 10.0}
