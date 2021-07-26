@@ -1,0 +1,40 @@
+<!-- launch file for vizualizing thrust balance movements in rviz -->
+
+<launch>
+  <!-- .............................. load robot xml description for the robot ....................................... -->
+  <param name="robot_description" 
+    textfile="$(find tb_description)/urdf/tb_description.urdf"/>
+  
+
+  <!-- .............................  Load joint controller configurations from YAML file to parameter server ........ -->
+  <rosparam file="$(find tb_control)/config/tb_joint_state_controller.yaml" command="load"/>
+  
+
+  <!-- .............................. controller spawner node for publish robot joint controller topic ..............  -->
+  <node name="controller_spawner" 
+    pkg="controller_manager" type="spawner" respawn="false" output="screen" ns="/tb" 
+    args="joint_state_controller
+		      roll_position_controller
+          right_motor_to_propeller
+        "/>
+
+  <!-- ...............................  robot TF tree publisher node  ................................................ -->
+  <node name="robot_state_publisher" 
+    pkg="robot_state_publisher" type="robot_state_publisher"
+    respawn="false" output="screen">
+    <remap from="/joint_states" to="/tb/joint_states" />
+  </node>  
+  
+
+  <!-- ...............................  rviz start with saved configuration  ......................................... --> 
+  <node name="rviz" pkg="rviz" type="rviz" 
+    args="-d $(find tb_description)/rviz/tb_display_rviz.rviz" >   
+  </node>    
+
+
+  <!-- ...............................  manual graphical joint state publisher node(replaced with controller spawner   -->
+  <!-- <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />   -->
+    <!-- <param name="use_gui" value="True" />  -->
+
+   
+</launch>
