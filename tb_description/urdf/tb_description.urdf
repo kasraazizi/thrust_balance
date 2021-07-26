@@ -10,11 +10,20 @@
       </geometry>
     </collision>     
   </link>
+
+  <joint name="basefootprint_to_stand" type="fixed">
+    <axis xyz="0 0 0"/>
+    <origin rpy="0 0 0" xyz="0 0 0.10"/>
+    <parent link="base_footprint"/>
+    <child link="stand"/>
+    <limit lower="-0.785" upper="0.785" effort="1000.0"  velocity="10"/>
+  </joint>
+
   # ------------------------------------- stand link-------------------------------------------------
   <link name="stand">
     <visual>
       <geometry>
-        <box size="0.01 0.01 0.20"/>
+        <box size="0.01 0.01 0.25"/>
          
       </geometry>
       <material name="black">
@@ -24,7 +33,7 @@
 
     <collision>
       <geometry>
-        <box size="0.01 0.01 0.20"/>
+        <box size="0.01 0.01 0.25"/>
       </geometry>
     </collision>
 
@@ -35,6 +44,14 @@
     </inertial>
   </link>
    
+  <joint name="roll" type="revolute">
+    <axis xyz="0 1 0"/>
+    <origin rpy="0 -1.57 0" xyz="0 0 0.125"/>
+    <parent link="stand"/>
+    <child link="pipe"/>
+    <limit lower="-0.785" upper="0.785" effort="1000.0"  velocity="10"/>
+  </joint>
+
   #   ---------------------------------------  pipe link  -----------------------------------------------
   <link name="pipe">
     <visual>
@@ -59,6 +76,22 @@
     </inertial>
   </link>
 
+  <joint name="pipe_to_right_motor" type="fixed">
+    <axis xyz="0 0 0"/>
+    <origin rpy="0 1.57 0" xyz="0 0 0.30"/>
+    <parent link="pipe"/>
+    <child link="right_motor"/>   
+  </joint>
+
+
+  <joint name="pipe_to_left_motor" type="fixed">
+    <axis xyz="0 0 0"/>
+    <origin rpy="0 1.57 0" xyz="0 0 -0.30"/>
+    <parent link="pipe"/>
+    <child link="left_motor"/>   
+  </joint>
+  
+  
   #   ---------------------------------------  right motor link -----------------------------------------------
   <link name="right_motor">
     <visual>
@@ -83,6 +116,14 @@
     </inertial>
   </link>
 
+  <joint name="right_motor_to_propeller" type="continuous">
+    <axis xyz="0 0 1"/>
+    <origin rpy="0 0 0" xyz="0 0 0.01"/>
+    <parent link="right_motor"/>
+    <child link="right_propeller"/>  
+    <limit effort="30" velocity="10"/> 
+  </joint>
+
   #   ---------------------------------------  left motor link -----------------------------------------------
   <link name="left_motor">
     <visual>
@@ -106,29 +147,17 @@
                  ixy="0" ixz="0" iyz="0"/>
     </inertial>
   </link>
-  #   ---------------------------------------  left propeller -----------------------------------------------
-  <link name="left_propeller">
-    <visual>
-      <geometry>
-        <box size="0.001 0.24 0.001"/>        
-       </geometry>
-      <material name="black">
-        <color rgba="0 0 0 1"/>
-      </material>
-    </visual>
 
-    <collision>
-      <geometry>
-        <box size="0.001 0.24 0.001"/>        
-      </geometry>
-    </collision>
 
-    <inertial>
-      <mass value="1.0"/>
-        <inertia ixx="0.015" iyy="0.0375" izz="0.0375"
-                 ixy="0" ixz="0" iyz="0"/>
-    </inertial>
-  </link>
+ <joint name="left_motor_to_propeller" type="continuous">
+  <axis xyz="0 0 1"/>
+  <origin rpy="0 0 0" xyz="0 0 0.01"/>
+  <parent link="left_motor"/>
+  <child link="left_propeller"/>   
+  <limit effort="30" velocity="10"/>
+</joint>
+
+ 
   #   ---------------------------------------  right propeller -----------------------------------------------
   <link name="right_propeller">
     <visual>
@@ -152,54 +181,41 @@
                  ixy="0" ixz="0" iyz="0"/>
     </inertial>
   </link>
-  #   ---------------------------------------  joints -----------------------------------------------
-  <joint name="basefootprint_to_stand" type="fixed">
-    <axis xyz="0 0 0"/>
-    <origin rpy="0 0 0" xyz="0 0 0.10"/>
-    <parent link="base_footprint"/>
-    <child link="stand"/>
-    <limit lower="-0.785" upper="0.785" effort="1000.0"  velocity="10"/>
-  </joint>
 
+  #   ---------------------------------------  left propeller -----------------------------------------------
+  <link name="left_propeller">
+    <visual>
+      <geometry>
+        <box size="0.001 0.24 0.001"/>        
+       </geometry>
+      <material name="black">
+        <color rgba="0 0 0 1"/>
+      </material>
+    </visual>
 
-  <joint name="roll" type="revolute">
-    <axis xyz="0 1 0"/>
-    <origin rpy="0 -1.57 0" xyz="0 0 0.10"/>
-    <parent link="stand"/>
-    <child link="pipe"/>
-    <limit lower="-0.785" upper="0.785" effort="1000.0"  velocity="10"/>
-  </joint>
+    <collision>
+      <geometry>
+        <box size="0.001 0.24 0.001"/>        
+      </geometry>
+    </collision>
 
-
-  <joint name="pipe_to_right_motor" type="fixed">
-    <axis xyz="0 0 0"/>
-    <origin rpy="0 1.57 0" xyz="0 0 0.30"/>
-    <parent link="pipe"/>
-    <child link="right_motor"/>   
-  </joint>
-
-  <joint name="pipe_to_left_motor" type="fixed">
-    <axis xyz="0 0 0"/>
-    <origin rpy="0 1.57 0" xyz="0 0 -0.30"/>
-    <parent link="pipe"/>
-    <child link="left_motor"/>   
-  </joint>
-  
-
-  <joint name="right_motor_to_propeller" type="continuous">
-    <axis xyz="0 0 1"/>
-    <origin rpy="0 0 0" xyz="0 0 0.01"/>
-    <parent link="right_motor"/>
-    <child link="right_propeller"/>   
-  </joint>
-
-  <joint name="left_motor_to_propeller" type="continuous">
-    <axis xyz="0 0 1"/>
-    <origin rpy="0 0 0" xyz="0 0 0.01"/>
-    <parent link="left_motor"/>
-    <child link="left_propeller"/>   
-  </joint>
-  
+    <inertial>
+      <mass value="1.0"/>
+        <inertia ixx="0.015" iyy="0.0375" izz="0.0375"
+                 ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+  #   ---------------------------------------  transmission -----------------------------------------------
+ 
+  <transmission name="roll_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <actuator name="$roll_motor">
+     <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+    <joint name="roll">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
+    </joint>
+  </transmission>
 
 </robot>
-{"mode":"full","isActive":false}
+ 

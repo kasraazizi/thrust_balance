@@ -10,7 +10,7 @@ node [shape=box];
 node [shape=ellipse, color=blue, fontcolor=blue];
 "base_footprint" -> "basefootprint_to_stand" [label="xyz: 0 0 0.1 \nrpy: 0 -0 0"]
 "basefootprint_to_stand" -> "stand"
-"stand" -> "roll" [label="xyz: 0 0 0.1 \nrpy: 0 -1.5708 0"]
+"stand" -> "roll" [label="xyz: 0 0 0.125 \nrpy: 0 -1.5708 0"]
 "roll" -> "pipe"
 "pipe" -> "pipe_to_left_motor" [label="xyz: 0 0 -0.3 \nrpy: 0 1.5708 -0"]
 "pipe_to_left_motor" -> "left_motor"
