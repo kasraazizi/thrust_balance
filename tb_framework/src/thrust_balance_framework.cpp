@@ -21,8 +21,10 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include <serial/serial.h>
 #include <tb_framework/tb_pwm.h>
 #include <tb_framework/tb_feedback.h>
+#include <sensor_msgs/JointState.h>
 #include <regex>
 #include <vector>
+
 using namespace std;
 using namespace serial;
 Serial ser("/dev/ttyUSB0");
@@ -32,12 +34,17 @@ class SubscribeAndPublish
 public:
   SubscribeAndPublish()
   {
-    pub_ = n_.advertise<tb_framework::tb_feedback>("/tb/feedback", 1000);
-
-    sub_ = n_.subscribe("/tb/cmd_pwm", 1000, &SubscribeAndPublish::callback, this);
+    // initial the subscriber and the publisher
+    feedback_pub_ = n_.advertise<tb_framework::tb_feedback>("/tb/feedback", 1000); // feedback publisher
+    joint_pub_ = n_.advertise<sensor_msgs::JointState>("/tb/joint_states", 1000); // jointstate pulisher
+    sub_ = n_.subscribe("/tb/cmd_pwm", 1000, &SubscribeAndPublish::callback, this); // pwm subscriber
   }
 
   vector<string> split (string s, string delimiter) {
+    /*
+     * fonction that get string and delimiter and
+     * split the string and return vector of strings
+     */
     size_t pos_start = 0, pos_end, delim_len = delimiter.length();
     string token;
     vector<string> res;
@@ -53,6 +60,12 @@ public:
   }
 
   void callback(const tb_framework::tb_pwm::ConstPtr& msg){
+    /*
+     * callback function that takes subscribed pwm msg and send it
+     * to arduino and return arduino response back that we published
+     * given message to "/tb/feedback" and "/tb/joint_states" topic
+     */
+
     regex wrong_message("wrong");
     regex wire_init_fail_message("wire");
     string pwm = "L" + to_string(msg->leftpwm) + "-" + to_string(msg->rightpwm) + "R" + "\n";
@@ -65,13 +78,27 @@ public:
         vector<string> rool_split = split(imu_data, "L");
         vector<string> pwms_split = split(rool_split.back(), "R");
         vector<string> pwm_split = split(pwms_split[0], "-");
+
+        //publishing feedback message
         tb_framework::tb_feedback pub_msg;
         pub_msg.frequency =(1 / (ros::Time::now().toSec() - delay_time.toSec()));
         pub_msg.roll = atof(rool_split[0].c_str());
         pub_msg.leftpwm = atoi(pwm_split[0].c_str());
         pub_msg.rightpwm = atoi(pwm_split.back().c_str());
         pub_msg.header.stamp = ros::Time::now();
-        pub_.publish(pub_msg);
+        feedback_pub_.publish(pub_msg);
+
+        //publishing joinstate message
+        sensor_msgs::JointState joint_msg;
+        joint_msg.position.push_back(((3.14 * atof(rool_split[0].c_str())) / 180));
+        joint_msg.position.push_back(0);
+        joint_msg.position.push_back(0);
+        joint_msg.name.push_back("roll");
+        joint_msg.name.push_back("right_motor_to_propeller");
+        joint_msg.name.push_back("left_motor_to_propeller");
+        joint_msg.header.stamp = ros::Time::now();
+        joint_pub_.publish(joint_msg);
+
       }else if (regex_search(imu_data, wire_init_fail_message)) {
         cout << "wire error !!" << endl;
       }else {
@@ -81,14 +108,21 @@ public:
   }
 
 private:
+  //initial ros
   ros::NodeHandle n_;
-  ros::Publisher pub_;
+  ros::Publisher feedback_pub_;
+  ros::Publisher joint_pub_;
   ros::Subscriber sub_;
-
 };
 
-
 void init(){
+
+  /*
+   * fuction that wait for arduino initiating
+   * and then breaks up;
+   */
+
+  // initial regex variables
   regex ok_messgae("imu OK\n");
   regex not_found_message("not found");
   regex wire_init_fail_message("wire");
@@ -96,7 +130,7 @@ void init(){
   int atemp = 0;
   int fail = 0;
   while (true){
-    // whlie for recive initial messagess
+    // while recive ok from arduino
     if (ser.available()){
       string init_message =ser.readline();
       if (init_message != ""){
@@ -106,7 +140,6 @@ void init(){
         }
         else if (regex_search(init_message, not_found_message)== true){
           atemp++;
-
         }
         if (regex_search(init_message, wire_init_fail_message) == true){
           atemp++;
@@ -127,6 +160,7 @@ void init(){
 }
 
 int main(int argc, char **argv){
+  // initial ros node
   ros::init(argc, argv, "tb_framwork");
   ser.flush();
   init();
