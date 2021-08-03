@@ -23,7 +23,6 @@ import serial
 import rospy
 from std_msgs.msg import String, Float32
 from sensor_msgs.msg import JointState 
-from sensor_msgs.msg import JointState 
 from tb_framework.msg import tb_feedback, tb_pwm
 from functools import partial 
 
@@ -55,9 +54,11 @@ def arduino_start(serial_obj):
             if sensor_data.rfind('not found') != -1:
                 rospy.logerr("mpu6050 not found")                 
                 rospy.signal_shutdown("mpu6050 not found")                           
-                ser.close() 
-                time.sleep(1)       
-                exit(1)
+#                serial_obj.close()
+                serial_obj.__exit__()
+                time.sleep(1)
+                serial_obj = serial_start()
+
             sensor_data.rfind('not found')
             if sensor_data.rfind('OK') != -1:
                 rospy.loginfo("Arduino's starting operation done in " + \
@@ -69,24 +70,29 @@ def arduino_start(serial_obj):
             restart_try += 1 
             serial_respond_time_offset = 0
             serial_obj.flushInput()
+<<<<<<< HEAD
             serial_obj.flushOutput()
             time.sleep(1)
             serial_obj.close()                               
+=======
+            serial_obj.flushOutput()            
+            serial_obj.__exit__()
+>>>>>>> d21b3bd83c92486312f38f0065f0cf91c1cd0ab4
             rospy.logerr("serial not responding --> restarting serial")        
             rospy.logerr("restart try=" + str(restart_try))                                  
-            serial_start()
-
             serial_obj = serial_start()
+            time.sleep(1)
+#            serial_obj = serial_start()
             if restart_try == 3:
                 rospy.logerr("couldn't recive propper data from arduino")
                 rospy.signal_shutdown("couldn't recive propper data from arduino")
                 serial_obj.flushInput()
                 serial_obj.flushOutput()
                 time.sleep(1)
-                serial_obj.close()
+                serial_obj.__exit__()
                 exit(1) 
 
-ser = serial_start()    
+ser = serial_start()
 arduino_start(ser)
 
 # initialize start time 
@@ -111,36 +117,34 @@ def arduino_framework_cb(cmd_vel_msg):
     while True:
         sensor_data = ser.read_all() 
         if sensor_data.endswith('R\n'):   
-            frequency = 1/(time.time()-loop_delay_start)       # calculating frequency of data communication         
+
+            # allocating data to fb_msg for publish
+            fb_msg.header.stamp = rospy.Time.from_sec(now)
+            fb_msg.frequency  =  1/(time.time()-loop_delay_start)
+            fb_msg.roll = float(sensor_data.split('L')[0])
+            fb_msg.leftpwm = int(sensor_data.split('L')[1].split('-')[0])
+            fb_msg.rightpwm = int(sensor_data.split('L')[1].split('-')[1].split('R')[0])
+            arduinoPublisher.publish(fb_msg)
+
+            # allocating data to joint_msg for publish
+            joint_msg.header.stamp =  rospy.Time.from_sec(rospy.get_time())
+            joint_msg.position = [3.14 * float(sensor_data.split('L')[0]) / 180 , 0, 0]
+            joint_msg.name =  ["roll", "right_motor_to_propeller", "left_motor_to_propeller"]
+            joint_msg.effort = []
+            joint_msg.velocity = []
+            joint_msg.header.frame_id = ''
+            joint_state_publisher.publish(joint_msg)
+
             break      
         elif sensor_data.rfind('wrong') != -1 :
             rospy.logwarn("wrong input data")
-            frequency = -1
+
             break    
         elif sensor_data.rfind('wire') != -1 :
             rospy.logwarn("arduino reseted")            
             arduino_start(ser)
-            frequency = -1
-            sensor_data = "-99L99-99R\n"
             break
      
-             
-    # allocating data to fb_msg for publish
-    fb_msg.header.stamp = rospy.Time.from_sec(now)
-    fb_msg.frequency  = frequency         
-    fb_msg.roll = float(sensor_data.split('L')[0])
-    fb_msg.leftpwm = int(sensor_data.split('L')[1].split('-')[0])
-    fb_msg.rightpwm = int(sensor_data.split('L')[1].split('-')[1].split('R')[0])
-    arduinoPublisher.publish(fb_msg)
-
-    # allocating data to joint_msg for publish  
-    joint_msg.header.stamp =  rospy.Time.from_sec(rospy.get_time())
-    joint_msg.position = [3.14 * float(sensor_data.split('L')[0]) / 180 , 0, 0]
-    joint_msg.name =  ["roll", "right_motor_to_propeller", "left_motor_to_propeller"]
-    joint_msg.effort = []
-    joint_msg.velocity = []
-    joint_msg.header.frame_id = ''
-    joint_state_publisher.publish(joint_msg)        
          
 if __name__ == '__main__':
     try:         
