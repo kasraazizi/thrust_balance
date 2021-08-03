@@ -70,7 +70,7 @@ def arduino_start(serial_obj):
             serial_respond_time_offset = 0
             serial_obj.flushInput()
             serial_obj.flushOutput()
-            time.sleep(1) 
+            time.sleep(1)
             serial_obj.close()                               
             rospy.logerr("serial not responding --> restarting serial")        
             rospy.logerr("restart try=" + str(restart_try))                                  
