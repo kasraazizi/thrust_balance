@@ -74,6 +74,8 @@ public:
 
     if (ser.available()){
       string imu_data = ser.readline();
+      ser.flush();
+      cout << imu_data;
       if (regex_search(imu_data, wrong_message) == false){
         vector<string> rool_split = split(imu_data, "L");
         vector<string> pwms_split = split(rool_split.back(), "R");
@@ -98,11 +100,6 @@ public:
         joint_msg.name.push_back("left_motor_to_propeller");
         joint_msg.header.stamp = ros::Time::now();
         joint_pub_.publish(joint_msg);
-
-      }else if (regex_search(imu_data, wire_init_fail_message)) {
-        cout << "wire error !!" << endl;
-      }else {
-        cout << "wrong input !!" << endl;
       }
     }
   }
@@ -129,12 +126,13 @@ void init(){
   ser.setBaudrate(9600);
   int atemp = 0;
   int fail = 0;
+  ROS_INFO("wait for initial ardiono !");
   while (true){
     // while recive ok from arduino
     if (ser.available()){
       string init_message =ser.readline();
       if (init_message != ""){
-        cout <<init_message;
+
         if (regex_match(init_message, ok_messgae) == true){
           break;
         }
@@ -145,13 +143,15 @@ void init(){
           atemp++;
         }
         if (atemp > 3){
-          cout << "fail to initiate arduino !!"<< endl;
+          //          cout << "fail to initiate arduino !!"<< endl;
+          ROS_WARN("fail to initiate arduino !!");
           fail++;
           ser.close();
           ser.open();
         }
         if (fail > 3){
-          cout << "All atemp fail to initiate arduino !!"<< endl;
+          //          cout << "All atemp fail to initiate arduino !!"<< endl;
+          ROS_ERROR("All atemp fail to initiate arduino !!");
           exit(3);
         }
       }
@@ -164,6 +164,7 @@ int main(int argc, char **argv){
   ros::init(argc, argv, "tb_framwork");
   ser.flush();
   init();
+  ROS_INFO("initialization sucsseced");
   SubscribeAndPublish SAPobj;
   ros::spin();
   return 0;
