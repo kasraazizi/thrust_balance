@@ -126,7 +126,7 @@ void init(){
   ser.setBaudrate(9600);
   int atemp = 0;
   int fail = 0;
-  ROS_INFO("wait for initial ardiono !");
+  ROS_INFO("wait for arduino to initialize!");
   while (true){
     // while recive ok from arduino
     if (ser.available()){
